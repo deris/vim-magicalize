@@ -109,7 +109,7 @@ function! s:convert_magicpattern(expr, funcescape, args) "{{{2
     " ・3つめのパターンは正規表現[]以降、終端までの文字列
     let list = matchlist(expr,
       \ '\(^\|^.\{-}[^\\]\%(\\\\\)*\)'.
-      \ '\('.esc.'\[.\{-}[^\\]\%(\\\\\)*\]\)'.
+      \ '\('.esc.'%\?\[.\{-}[^\\]\%(\\\\\)*\]\)'.
       \ '\(.*\)$')
 
     " マッチしなくなったら残りの文字列をエスケープ用の文字列リストに追加
@@ -120,9 +120,9 @@ function! s:convert_magicpattern(expr, funcescape, args) "{{{2
 
     let [beforestr, matchstr, afterstr] = list[1 : 3]
     if need_delete_escape
-      let matchstr = substitute(matchstr, '^\\\(\[.*\]\)$', '\1', '')
+      let matchstr = substitute(matchstr, '^\\\(%\?\[.*\]\)$', '\1', '')
     elseif need_add_escape
-      let matchstr = substitute(matchstr, '^\(\[.*\]\)$', '\\\1', '')
+      let matchstr = substitute(matchstr, '^\(%\?\[.*\]\)$', '\\\1', '')
     endif
 
     call add(needescape, beforestr)
