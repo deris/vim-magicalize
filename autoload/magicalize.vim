@@ -223,7 +223,7 @@ function! s:convert_except4verymagic(expr, args) "{{{2
 
   let m_nom    = '.*[~'
   let m_vnom   = '.*[~^$'
-  let nom_vnom = '^$'
+  let nom_vnom = '$^'
   let type    = join(sort([from, to]), '')
   if !(  type ==# '\M\m'
     \ || type ==# '\V\m'
