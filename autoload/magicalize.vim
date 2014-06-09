@@ -76,7 +76,7 @@ function! s:divide_pattern(expr) "{{{2
   let pattern_set = []
 
   for pattern in patterns
-    if pattern =~? '^\\[mv]'
+    if pattern =~# '^\\[mvMV]'
       call add(pattern_set, split(pattern, '^\\[mMvV]\zs'))
     else
       call add(pattern_set, [ &magic ? '\m' : '\M', pattern ])
