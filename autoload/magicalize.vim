@@ -71,7 +71,7 @@ endfunction
 "}}}
 
 function! s:divide_pattern(expr) "{{{2
-  let patterns = split(a:expr, '\(^\|[^\\]\%(\\\\\)*\)\zs\ze\\[mMvv]')
+  let patterns = split(a:expr, '\(^\|[^\\]\%(\\\\\)*\)\zs\ze\\[mvMV]')
 
   let pattern_set = []
 
