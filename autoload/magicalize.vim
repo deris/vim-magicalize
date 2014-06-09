@@ -89,13 +89,12 @@ endfunction
 
 function! s:convert_magicpattern(expr, funcescape, args) "{{{2
   let expr = a:expr
-  let from_magic = (a:args[0] ==# '\m' || a:args[0] ==# '\v')
-  let to_magic   = (a:args[1] ==# '\m' || a:args[1] ==# '\v')
-  let esc = (from_magic ? '' : '\\')
-  let need_delete_escape = (!from_magic && to_magic)
-  let need_add_escape    = (from_magic && !to_magic)
-  let from = (a:args[0] ==# '\m' || a:args[0] ==# '\v')
-  let needescape = []  " エスケープが必要な文字列リスト
+  let from = a:args[0]
+  let to   = a:args[1]
+
+  let esc = (from ==# '\m' || from ==# '\v' ? '' : '\\')
+
+  let needescape   = [] " エスケープが必要な文字列リスト
   let noneedescape = [] " エスケープが不要な文字列リスト
 
   " エスケープが必要な文字列と不要な文字列を分ける
@@ -119,10 +118,19 @@ function! s:convert_magicpattern(expr, funcescape, args) "{{{2
     endif
 
     let [beforestr, matchstr, afterstr] = list[1 : 3]
-    if need_delete_escape
-      let matchstr = substitute(matchstr, '^\\\(%\?\[.*\]\)$', '\1', '')
-    elseif need_add_escape
-      let matchstr = substitute(matchstr, '^\(%\?\[.*\]\)$', '\\\1', '')
+    if (from ==# '\M' || from ==# '\V') &&
+      \(to ==# '\m' || to ==# '\v')
+      let matchstr = substitute(matchstr, '^\\\(\[.*\]\)$', '\1', '')
+    elseif (from ==# '\m' || from ==# '\v') &&
+      \    (to ==# '\M' || to ==# '\V')
+      let matchstr = substitute(matchstr, '^\(\[.*\]\)$', '\\\1', '')
+    endif
+    if from ==# '\v' &&
+      \(to ==# '\m' || to ==# '\M' || to ==# '\V')
+      let matchstr = substitute(matchstr, '^\(%\[.*\]\)$', '\\\1', '')
+    elseif (from ==# '\m' || from ==# '\M' || from ==# '\V') &&
+      \    to ==# '\v'
+      let matchstr = substitute(matchstr, '^\\\(%\[.*\]\)$', '\1', '')
     endif
 
     call add(needescape, beforestr)
