@@ -186,8 +186,8 @@ function! s:convert_verymagic(expr, args) "{{{2
 
   let esc     = (to ==# '\v' ? '' : '\\')
   let vm_m    = '{%?|+&@)'
-  let vm_nom  = '{%?|+&@).*[~'
-  let vm_vnom = '{%?|+&@).*[~^$'
+  let vm_nom  = '{%?|+&@).*~'
+  let vm_vnom = '{%?|+&@).*~^$'
   let type    = join(sort([from, to]), '')
   if !(  type ==# '\m\v'
     \ || type ==# '\M\v'
@@ -206,8 +206,11 @@ function! s:convert_verymagic(expr, args) "{{{2
   let res = substitute(res, '\%([^\\]\)'.esc.'\%(\\\\\)*'.'\%(@<\?\)'.'\zs=', '\\=', 'g')             " 前に特殊文字として扱われない@か@<がつく=をエスケープ
   let res = substitute(res, '\%([^\\]\)'.esc.'\%(\\\\\)*'.'\zs%'.'\ze[(>]', '%\\', 'g')               " 前に特殊文字として扱われない%がつく[(>]をエスケープ
   let res = substitute(res, '\%([^\\]\)'.esc.'\%(\\\\\)*'.'\zs\([@%]\)<', '\1\\<', 'g')               " 前に特殊文字として扱われない[@%]がつく<をエスケープ
-  let res = substitute(res, '\(['.escaped_text.']\)', '\\\1', 'g')                                    " [<>(=]以外でエスケープが必要な記号をエスケープ
-  let res = substitute(res, '\%([^\\]\)'.'\%(\\\\\)*'.'\zs\\\\'.'\ze['.escaped_text.'<>(=]', '', 'g') " 二重エスケープになったものは元々エスケープされていたものなのでアンエスケープ
+  if type ==# '\M\v' || type ==# '\V\v'
+    let res = substitute(res, '\%([^\\]\)'.(from ==# '\v' ? '\\' : '').'\%(\\\\\)*'.'\zs\%(\\_\)\@<!\[', '\\[', 'g') " 前に\_がつかない[をエスケープ
+  endif
+  let res = substitute(res, '\(['.escaped_text.']\)', '\\\1', 'g') " エスケープが必要な記号をエスケープ
+  let res = substitute(res, '\%([^\\]\)'.'\%(\\\\\)*'.'\zs\\\\'.'\ze['.escaped_text . (type ==# '\M\v' ? '[' : (type ==# '\V\v' ? '[' : '')) . '<>(=]', '', 'g') " 二重エスケープになったものは元々エスケープされていたものなのでアンエスケープ
 
   return strpart(res, 1)
 endfunction
@@ -221,8 +224,8 @@ function! s:convert_except4verymagic(expr, args) "{{{2
     return a:expr
   endif
 
-  let m_nom    = '.*[~'
-  let m_vnom   = '.*[~^$'
+  let m_nom    = '.*~'
+  let m_vnom   = '.*~^$'
   let nom_vnom = '$^'
   let type    = join(sort([from, to]), '')
   if !(  type ==# '\M\m'
@@ -235,8 +238,13 @@ function! s:convert_except4verymagic(expr, args) "{{{2
 
   let escaped_text = (type == '\M\m' ? m_nom : (type == '\V\m' ? m_vnom : nom_vnom))
   let res = ' ' . a:expr
-  let res = substitute(res, '\(['.escaped_text.']\)', '\\\1', 'g')                                " エスケープが必要な記号をエスケープ
-  let res = substitute(res, '\%([^\\]\)'.'\%(\\\\\)*'.'\zs\\\\'.'\ze['.escaped_text.']', '', 'g') " 二重エスケープになったものは元々エスケープされていたものなのでアンエスケープ
+  if type ==# '\M\m' || type ==# '\V\m'
+    let res = substitute(res, '\%('.'\%([^\\]\)'.'\%(\\\\\)*'.'\\_\)\@<!\[', '\\[', 'g') " 前に\_がつかない[をエスケープ
+  endif
+  if type !=# '\M\V'
+    let res = substitute(res, '\(['.escaped_text.']\)', '\\\1', 'g') " エスケープが必要な記号をエスケープ
+  endif
+  let res = substitute(res, '\%([^\\]\)'.'\%(\\\\\)*'.'\zs\\\\'.'\ze['.escaped_text . (type ==# '\M\m' ? '[' : (type ==# '\V\m' ? '[' : '')) . ']', '', 'g') " 二重エスケープになったものは元々エスケープされていたものなのでアンエスケープ
 
   return strpart(res, 1)
 endfunction
