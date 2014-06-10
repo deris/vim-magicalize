@@ -49,6 +49,9 @@ endfunction
 
 " Private "{{{1
 
+let s:escaped_backslash     = '\%(^\|[^\\]\)\%(\\\\\)*'
+let s:non_escaped_backslash = '\%(^\|[^\\]\)\%(\\\\\)*\\'
+
 function! s:convert_pattern(expr, magic_type) "{{{2
   " divide magic parts
   let pattern_sets = s:divide_pattern(a:expr)
@@ -71,7 +74,7 @@ endfunction
 "}}}
 
 function! s:divide_pattern(expr) "{{{2
-  let patterns = split(a:expr, '\%(^\|[^\\]\)\%(\\\\\)*\zs\ze\\[mvMV]')
+  let patterns = split(a:expr, s:escaped_backslash.'\zs\ze\\[mvMV]')
 
   let pattern_set = []
 
@@ -108,7 +111,7 @@ function! s:convert_magicpattern(expr, funcescape, args) "{{{2
     " ・3つめのパターンは正規表現[]以降、終端までの文字列
     let list = matchlist(expr,
       \ '\(\%(^\|^.\{-}[^\\]\)\%(\\\\\)*\)'.
-      \ '\(\%('.esc.'\|'.(from ==# '\v' ? '' : '\\').'%'.'\|\\_'.'\)\%(\%(^\|[^\\]\)\%(\\\\\)*\\_\)\@<!\[.\{-}[^\\]\%(\\\\\)*\]\)'.
+      \ '\(\%('.esc.'\|'.(from ==# '\v' ? '' : '\\').'%'.'\|\\_'.'\)\%('.s:escaped_backslash.'\\_\)\@<!\[.\{-}'.s:escaped_backslash.'\]\)'.
       \ '\(.*\)$')
 
     " マッチしなくなったら残りの文字列をエスケープ用の文字列リストに追加
@@ -184,7 +187,9 @@ function! s:convert_verymagic(expr, args) "{{{2
     return a:expr
   endif
 
-  let esc     = (to ==# '\v' ? '' : '\\')
+  let esc_verymagic     = (from ==# '\v' ? s:non_escaped_backslash : s:escaped_backslash)
+  let esc_non_verymagic = (from ==# '\v' ? s:escaped_backslash : s:non_escaped_backslash)
+
   let vm_m    = '{%?|+&@)'
   let vm_nom  = '{%?|+&@).*~'
   let vm_vnom = '{%?|+&@).*~'
@@ -200,20 +205,20 @@ function! s:convert_verymagic(expr, args) "{{{2
 
   " この順で呼ばないと駄目
   let res = ' ' . a:expr
-  let res = substitute(res, '\%(@<\?\)\@<!'.'=', '\\=', 'g')                                          " 前に@か@<がつかない=をエスケープ
-  let res = substitute(res, '\([^%]\)'.'\ze[(>]', '\1\\', 'g')                                        " 前に%がつかない[(>]をエスケープ
-  let res = substitute(res, '\([^@%]\)'.'\ze<', '\1\\', 'g')                                          " 前に[@%]がつかない<をエスケープ
-  let res = substitute(res, '[^\\]'.esc.'\%(\\\\\)*'.'\%(@<\?\)'.'\zs=', '\\=', 'g')             " 前に特殊文字として扱われない@か@<がつく=をエスケープ
-  let res = substitute(res, '[^\\]'.esc.'\%(\\\\\)*'.'\zs%'.'\ze[(>]', '%\\', 'g')               " 前に特殊文字として扱われない%がつく[(>]をエスケープ
-  let res = substitute(res, '[^\\]'.esc.'\%(\\\\\)*'.'\zs\([@%]\)<', '\1\\<', 'g')               " 前に特殊文字として扱われない[@%]がつく<をエスケープ
+  let res = substitute(res, '\%(@<\?\)\@<!'.'=', '\\=', 'g')                 " 前に@か@<がつかない=をエスケープ
+  let res = substitute(res, '\([^%]\)'.'\ze[(>]', '\1\\', 'g')               " 前に%がつかない[(>]をエスケープ
+  let res = substitute(res, '\([^@%]\)'.'\ze<', '\1\\', 'g')                 " 前に[@%]がつかない<をエスケープ
+  let res = substitute(res, esc_verymagic.'\%(@<\?\)'.'\zs=', '\\=', 'g')    " 前に特殊文字として扱われない@か@<がつく=をエスケープ
+  let res = substitute(res, esc_verymagic.'\zs%'.'\ze[(>]', '%\\', 'g')      " 前に特殊文字として扱われない%がつく[(>]をエスケープ
+  let res = substitute(res, esc_verymagic.'\zs\([@%]\)<', '\1\\<', 'g')      " 前に特殊文字として扱われない[@%]がつく<をエスケープ
   if type ==# '\M\v' || type ==# '\V\v'
-    let res = substitute(res, '[^\\]'.(from ==# '\v' ? '\\' : '').'\%(\\\\\)*'.'\zs\%(\\_\)\@<!\[', '\\[', 'g') " 前に\_がつかない[をエスケープ
+    let res = substitute(res, esc_verymagic.'\zs\%(\\_\)\@<!\[', '\\[', 'g') " 前に\_がつかない[をエスケープ
   endif
   if type ==# '\V\v'
-    let res = substitute(res, '\%([^\\]'.(to ==# '\v' ? '\\' : '').'\%(\\\\\)*'.'%\)\@<!'.'\([$^]\)', '\\\1', 'g') " 前に%がつかない$^をエスケープ
+    let res = substitute(res, '\%('.esc_non_verymagic.'%\)\@<!'.'\([$^]\)', '\\\1', 'g') " 前に%がつかない$^をエスケープ
   endif
   let res = substitute(res, '\(['.escaped_text.']\)', '\\\1', 'g') " エスケープが必要な記号をエスケープ
-  let res = substitute(res, '[^\\]'.'\%(\\\\\)*'.'\zs\\\\'.'\ze['.escaped_text . (type ==# '\M\v' ? '[' : (type ==# '\V\v' ? '[$^' : '')) . '<>(=]', '', 'g') " 二重エスケープになったものは元々エスケープされていたものなのでアンエスケープ
+  let res = substitute(res, s:escaped_backslash.'\zs\\\\'.'\ze['.escaped_text . (type ==# '\M\v' ? '[' : (type ==# '\V\v' ? '[$^' : '')) . '<>(=]', '', 'g') " 二重エスケープになったものは元々エスケープされていたものなのでアンエスケープ
 
   return strpart(res, 1)
 endfunction
@@ -242,15 +247,15 @@ function! s:convert_except4verymagic(expr, args) "{{{2
   let escaped_text = (type == '\M\m' ? m_nom : (type == '\V\m' ? m_vnom : nom_vnom))
   let res = ' ' . a:expr
   if type ==# '\M\m' || type ==# '\V\m'
-    let res = substitute(res, '\%([^\\]'.'\%(\\\\\)*'.'\\_\)\@<!\[', '\\[', 'g') " 前に\_がつかない[をエスケープ
+    let res = substitute(res, '\%('.s:escaped_backslash.'\\_\)\@<!\[', '\\[', 'g') " 前に\_がつかない[をエスケープ
   endif
   if type ==# '\V\m' || type ==# '\M\V'
-    let res = substitute(res, '\%([^\\]'.'\\\%(\\\\\)*'.'%\)\@<!'.'\([$^]\)', '\\\1', 'g') " 前に%がつかない$^をエスケープ
+    let res = substitute(res, '\%('.s:non_escaped_backslash.'%\)\@<!'.'\([$^]\)', '\\\1', 'g') " 前に%がつかない$^をエスケープ
   endif
   if type !=# '\M\V'
     let res = substitute(res, '\(['.escaped_text.']\)', '\\\1', 'g') " エスケープが必要な記号をエスケープ
   endif
-  let res = substitute(res, '[^\\]'.'\%(\\\\\)*'.'\zs\\\\'.'\ze['.escaped_text . (type ==# '\M\m' ? '[' : (type ==# '\V\m' ? '[$^' : '$^')) .']', '', 'g') " 二重エスケープになったものは元々エスケープされていたものなのでアンエスケープ
+  let res = substitute(res, s:escaped_backslash.'\zs\\\\'.'\ze['.escaped_text . (type ==# '\M\m' ? '[' : (type ==# '\V\m' ? '[$^' : '$^')) .']', '', 'g') " 二重エスケープになったものは元々エスケープされていたものなのでアンエスケープ
 
   return strpart(res, 1)
 endfunction
