@@ -25,29 +25,29 @@
 
 " Interface "{{{1
 function! operator#magicalize#magicalize(motion_wise) "{{{2
-  return s:operator_magicalize(a:motion_wise, 0)
+  return s:operator_magicalize(a:motion_wise, function('magicalize#magicalize'))
 endfunction
 "}}}
 
 function! operator#magicalize#verymagicalize(motion_wise) "{{{2
-  return s:operator_magicalize(a:motion_wise, 1)
+  return s:operator_magicalize(a:motion_wise, function('magicalize#verymagicalize'))
 endfunction
 "}}}
 
 function! operator#magicalize#nomagicalize(motion_wise) "{{{2
-  return s:operator_magicalize(a:motion_wise, 0)
+  return s:operator_magicalize(a:motion_wise, function('magicalize#nomagicalize'))
 endfunction
 "}}}
 
 function! operator#magicalize#verynomagicalize(motion_wise) "{{{2
-  return s:operator_magicalize(a:motion_wise, 1)
+  return s:operator_magicalize(a:motion_wise, function('magicalize#verynomagicalize'))
 endfunction
 "}}}
 
 "}}}
 
 " Private "{{{1
-function! s:operator_magicalize(motion_wise, m2v) "{{{2
+function! s:operator_magicalize(motion_wise, func) "{{{2
   let visual_command = s:visual_command_from_wise_name(a:motion_wise)
 
   let put_command = (s:deletion_moves_the_cursor_p(
@@ -68,7 +68,7 @@ function! s:operator_magicalize(motion_wise, m2v) "{{{2
     execute 'normal!' '`['.visual_command.'`]"zd'
     let text = getreg(reg)
 
-    let @z = (a:m2v == 1) ? magicalize#verymagicalize(text) : magicalize#magicalize(text)
+    let @z = a:func(text)
 
     execute 'normal!' '"'.reg.put_command
 
