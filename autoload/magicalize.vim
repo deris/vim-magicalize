@@ -80,8 +80,16 @@ function! s:divide_pattern(expr) "{{{2
 
   for pattern in patterns
     if pattern =~# '^\\[mvMV]'
+      if len(pattern) == 2
+        " \\[mvMV]だけだったら(空文字列なので)次へ
+        continue
+      endif
       call add(pattern_set, split(pattern, '^\\[mMvV]\zs'))
     else
+      if len(pattern) == 0
+        " 空文字列だったら次へ
+        continue
+      endif
       call add(pattern_set, [ &magic ? '\m' : '\M', pattern ])
     endif
   endfor
