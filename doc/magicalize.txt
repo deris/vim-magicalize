@@ -1,0 +1,101 @@
+*magicalize.txt*	Convert several pattern to magic pattern
+
+Version 0.1.0
+Copyright (C) 2014 deris <deris0126@gmail.com>
+License: MIT license  {{{
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
+
+CONTENTS					*magicalize-contents*
+
+Introduction		|magicalize-introduction|
+Interface		|magicalize-interface|
+  Functions		  |magicalize-functions|
+  Mappings		  |magicalize-mappings|
+Changelog		|magicalize-changelog|
+
+
+==============================================================================
+INTRODUCTION				       *magicalize-introduction*
+
+
+*magicalize* is Vim plugin for converting several pattern to magic pattern.
+
+
+Requirements:
+- Vim 7.2 or later
+- |operator-user| 0.0.5 or later (if you use operator of magicalize)
+
+Latest version:
+http://github.com/deris/vim-magicalize
+
+
+==============================================================================
+INTERFACE					*magicalize-interface*
+
+------------------------------------------------------------------------------
+FUNCTIONS					*magicalize-functions*
+
+magicalize#magicalize([pattern])		*magicalize#magicalize()*
+	Convert several pattern to 'magic' pattern.
+
+magicalize#verymagicalize([pattern])		*magicalize#verymagicalize()*
+	Convert several pattern to 'nomagic' pattern.
+
+magicalize#nomagicalize([pattern])		*magicalize#nomagicalize()*
+	Convert several pattern to 'very magic' pattern.
+
+magicalize#verynomagicalize([pattern])		*magicalize#verynomagicalize()*
+	Convert several pattern to 'very nomagic' pattern.
+
+
+------------------------------------------------------------------------------
+MAPPINGS					*magicalize-mappings*
+
+["x]<Plug>(operator-magicalize){motion}		*<Plug>(operator-magicalize)*
+	Convert several pattern to 'magic' pattern that {motion} moves
+	over with register x.
+
+["x]<Plug>(operator-verymagicalize){motion}	*<Plug>(operator-verymagicalize)*
+	Convert several pattern to 'nomagic' pattern that {motion} moves
+	over with register x.
+
+["x]<Plug>(operator-nomagicalize){motion}	*<Plug>(operator-nomagicalize)*
+	Convert several pattern to 'very magic' pattern that {motion} moves
+	over with register x.
+
+["x]<Plug>(operator-verynomagicalize){motion}	*<Plug>(operator-verynomagicalize)*
+	Convert several pattern to 'very nomagic' pattern that {motion} moves
+	over with register x.
+
+
+==============================================================================
+CHANGELOG					*magicalize-changelog*
+
+0.1.0	2014-06-14
+	- First release version.
+	- fix several bug.
+
+0.0.1	2014-06-07
+	- Initial version.
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:fen:fdl=0:fdm=marker:

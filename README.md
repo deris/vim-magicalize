@@ -1,7 +1,12 @@
 vim-magicalize
 ===
 
-This is Vim plugin convert pattern of magic type each other.
+This is Vim plugin for converting several pattern to magic pattern.
+
+Usage
+---
+
+Under construction.
 
 License
 ---
